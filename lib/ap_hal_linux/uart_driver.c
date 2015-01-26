@@ -94,6 +94,10 @@ void uart_close()
 int read_uart(char *buf, unsigned int n)
 {
 	int len;
+	if (!flag_uart_init)
+	{
+		return -1;
+	}
 	len = read(fd_uart,buf,n);
 	return len;
 }

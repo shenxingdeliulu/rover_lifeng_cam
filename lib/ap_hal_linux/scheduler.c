@@ -16,7 +16,7 @@ int scheduler_init()
 {
 	gettimeofday(&start_time, NULL);
 	clock_gettime(CLOCK_MONOTONIC, &start_ntime);
-	//*start_time = (unsigned long)tp.tv_sec * 1000 + (unsigned long)tp.tv_usec * 0.001;
+	//*start_time = (uint32_t)tp.tv_sec * 1000 + (uint32_t)tp.tv_usec * 0.001;
 	return 0;
 }
 
@@ -63,7 +63,7 @@ void timer_update(union sigval v)
 }
 
 
-// int get_ms(unsigned long *count)
+// int get_ms(uint32_t *count)
 // {
 // 	struct timeval t;
 // 	if (!count)
@@ -77,7 +77,7 @@ void timer_update(union sigval v)
 // 	return 0;
 // }
 
-int get_ms(unsigned long *count)
+int linux_get_ms(uint32_t *count)
 {
 	struct timespec t;
 	if (!count)
@@ -93,7 +93,7 @@ int get_ms(unsigned long *count)
 	return 0;
 }
 
-int get_us(unsigned long *count)
+int linux_get_us(uint32_t *count)
 {
 	struct timespec t;
 
@@ -111,7 +111,7 @@ int get_us(unsigned long *count)
 	return 0;
 }
 
-void delay_microseconds(unsigned long usec)
+void delay_microseconds(uint32_t usec)
 {
 	struct timespec  ts;
 	ts.tv_sec = 0;
@@ -119,7 +119,7 @@ void delay_microseconds(unsigned long usec)
 	while (nanosleep(&ts, &ts) == -1);
 }
 
-void delay_ms(unsigned long num_ms)
+void linux_delay_ms(uint32_t num_ms)
 {
 	struct timespec  ts;
 	ts.tv_sec = num_ms / 1000;
