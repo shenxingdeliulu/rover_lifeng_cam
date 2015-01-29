@@ -10,7 +10,7 @@ struct timeval start_time;
 struct timespec start_ntime;
 //volatile uint32_t boot_time_ms = 0;
 
-void timer_update(union sigval v);
+//extern void timer_update(union sigval v);
 
 int scheduler_init()
 {
@@ -20,7 +20,7 @@ int scheduler_init()
 	return 0;
 }
 
-int scheduler_begin()
+int scheduler_begin(void timer_update(union sigval v))
 {
 	struct sigevent evp;
 	struct itimerspec ts;
@@ -57,10 +57,10 @@ int scheduler_begin()
 	return 0;
 }
 
-void timer_update(union sigval v)
-{
-	//boot_time_ms++;
-}
+// void timer_update(union sigval v)
+// {
+// 	//boot_time_ms++;
+// }
 
 
 // int get_ms(uint32_t *count)

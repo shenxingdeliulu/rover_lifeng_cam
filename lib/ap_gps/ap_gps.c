@@ -10,7 +10,7 @@
 
 #define UART_DEVICE "/dev/ttySAC3"
 #define MAXBUF_UART 200
-
+#define GPS_MIN_SPEED 3
 //#define GPS_DEBUG
 //struct location
 nmeaINFO info;
@@ -68,9 +68,12 @@ void gps_parse()
 	{
 		nmea_parse(&parser, gps_buf, len, &info);
 		if (gps_op_mode() >= NMEA_FIX_2D)
-		{
-			fill_3d_velocity(gps_vel);
+		{	
 			ground_location(&gps_loc);
+			if (ground_speed() >= GPS_MIN_SPEED)
+			{
+				fill_3d_velocity(gps_vel);
+			}
 		}
 	}
 }
@@ -141,7 +144,7 @@ void check_position()
 	bool all_ok;
 
 	get_ms(&now);
-	if (gps_op_mode() < NMEA_FIX_3D)
+	if (gps_op_mode() < NMEA_FIX_2D)
 	{
 		flag_gps_glitching = true;
 		return ;

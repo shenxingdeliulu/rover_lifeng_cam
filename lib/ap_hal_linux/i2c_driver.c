@@ -176,7 +176,7 @@ int linux_i2c_read(unsigned char slave_addr, unsigned char reg_addr,
 			break;
 
 		tries++;		
-		delay_ms(10);
+		linux_delay_ms(10);
 	}
 
 	if (total < length)
@@ -193,6 +193,3 @@ int linux_i2c_read(unsigned char slave_addr, unsigned char reg_addr,
 
 	return 0;
 }
-
-
-
