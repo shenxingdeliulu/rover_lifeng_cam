@@ -4,21 +4,21 @@
 //
 //  Copyright (c) 2013 Pansenti, LLC
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy of 
-//  this software and associated documentation files (the "Software"), to deal in 
-//  the Software without restriction, including without limitation the rights to use, 
-//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
-//  Software, and to permit persons to whom the Software is furnished to do so, 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy of
+//  this software and associated documentation files (the "Software"), to deal in
+//  the Software without restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+//  Software, and to permit persons to whom the Software is furnished to do so,
 //  subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be included in all 
+//  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
-//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdio.h>
@@ -32,10 +32,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+//#include <curses.h>
 
 #include "mpu9150.h"
 #include "i2c_driver.h"
 #include "local_defaults.h"
+//#include "kbhit.h"
 
 void read_loop(unsigned int sample_rate);
 void print_accel(mpudata_t *mpu);
@@ -62,7 +64,7 @@ void usage(char *argv_0)
 	printf("  -h                    Show this help\n");
 
 	printf("\nExample: %s -b3 -s20 -a\n\n", argv_0);
-	
+
 	exit(1);
 }
 
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
 	int opt;
 	int i2c_bus = DEFAULT_I2C_BUS;
 	int sample_rate = DEFAULT_SAMPLE_RATE_HZ;
-	
+
 	mag_mode = -1;
 
 	memset(calFile, 0, sizeof(calFile));
@@ -80,21 +82,21 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case 'b':
 			i2c_bus = strtoul(optarg, NULL, 0);
-			
+
 			if (errno == EINVAL)
 				usage(argv[0]);
-			
+
 			if (i2c_bus < MIN_I2C_BUS || i2c_bus > MAX_I2C_BUS)
 				usage(argv[0]);
 
 			break;
-		
+
 		case 's':
 			sample_rate = strtoul(optarg, NULL, 0);
-			
+
 			if (errno == EINVAL)
 				usage(argv[0]);
-			
+
 			if (sample_rate < MIN_SAMPLE_RATE || sample_rate > MAX_SAMPLE_RATE)
 				usage(argv[0]);
 
@@ -122,7 +124,7 @@ int main(int argc, char **argv)
 
 			mag_mode = 1;
 			break;
-		
+
 		case 'h':
 		default:
 			usage(argv[0]);
@@ -135,8 +137,34 @@ int main(int argc, char **argv)
 
 	register_sig_handler();
 
-	if (mpu9150_init(i2c_bus, sample_rate, 0))
-		exit(1);
+	// if (mpu9150_init(i2c_bus, sample_rate, 0))
+	// 	exit(1);
+
+	fprintf(stdout, "please input enter to collect the first group data\n");
+	char input[10];
+	//initscr();
+	while (1)
+	{
+			bzero(input, 10);
+			gets(input);
+			//fgets(input, 10, stdin);
+			//puts("get over\n");
+			//puts(input);
+			if (strcmp(input, "mag") == 0)
+			{
+				fprintf(stdout, "collecting the data\n");
+			//return 0;
+			}
+			else
+			{
+				fprintf(stdout, "please input \"mag\" to collect the first group data \n");
+			//return 0;
+			}
+	}
+
+		//fprintf(stdout, "your input is %c\n", input);
+
+
 
 	read_loop(sample_rate);
 
@@ -186,7 +214,7 @@ void read_loop(unsigned int sample_rate)
 						minVal[i] = mpu.rawMag[i];
 						change = 1;
 					}
-				
+
 					if (mpu.rawMag[i] > maxVal[i]) {
 						maxVal[i] = mpu.rawMag[i];
 						change = 1;
@@ -201,7 +229,7 @@ void read_loop(unsigned int sample_rate)
 						minVal[i] = mpu.rawAccel[i];
 						change = 1;
 					}
-				
+
 					if (mpu.rawAccel[i] > maxVal[i]) {
 						maxVal[i] = mpu.rawAccel[i];
 						change = 1;
@@ -209,7 +237,7 @@ void read_loop(unsigned int sample_rate)
 				}
 			}
 		}
-		
+
 		if (change) {
 			if (mag_mode)
 				print_mag(&mpu);
@@ -226,7 +254,7 @@ void read_loop(unsigned int sample_rate)
 void print_accel(mpudata_t *mpu)
 {
 	printf("\rX %d|%d|%d    Y %d|%d|%d    Z %d|%d|%d             ",
-			minVal[0], mpu->rawAccel[0], maxVal[0], 
+			minVal[0], mpu->rawAccel[0], maxVal[0],
 			minVal[1], mpu->rawAccel[1], maxVal[1],
 			minVal[2], mpu->rawAccel[2], maxVal[2]);
 
@@ -236,7 +264,7 @@ void print_accel(mpudata_t *mpu)
 void print_mag(mpudata_t *mpu)
 {
 	printf("\rX %d|%d|%d    Y %d|%d|%d    Z %d|%d|%d             ",
-			minVal[0], mpu->rawMag[0], maxVal[0], 
+			minVal[0], mpu->rawMag[0], maxVal[0],
 			minVal[1], mpu->rawMag[1], maxVal[1],
 			minVal[2], mpu->rawMag[2], maxVal[2]);
 
@@ -273,7 +301,7 @@ void register_sig_handler()
 	if (sigaction(SIGINT, &sia, NULL) < 0) {
 		perror("sigaction(SIGINT)");
 		exit(1);
-	} 
+	}
 }
 
 void sigint_handler(int sig)

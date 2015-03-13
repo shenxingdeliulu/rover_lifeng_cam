@@ -4,21 +4,21 @@
 //
 //  Copyright (c) 2013 Pansenti, LLC
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy of 
-//  this software and associated documentation files (the "Software"), to deal in 
-//  the Software without restriction, including without limitation the rights to use, 
-//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
-//  Software, and to permit persons to whom the Software is furnished to do so, 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy of
+//  this software and associated documentation files (the "Software"), to deal in
+//  the Software without restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+//  Software, and to permit persons to whom the Software is furnished to do so,
 //  subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be included in all 
+//  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
-//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef MPU9150_H
@@ -33,17 +33,24 @@
 // The MIN comes from the way we are timing our loop in imu and imucal.
 // That's easily worked around, but no one probably cares.
 // The MAX comes from the compass. This could be avoided with separate
-// sample rates for the compass and the accel/gyros which can handle 
-// faster sampling rates. This is a TODO item to see if it's useful. 
+// sample rates for the compass and the accel/gyros which can handle
+// faster sampling rates. This is a TODO item to see if it's useful.
 // There are some practical limits on the speed that come from a 'userland'
 // implementation like this as opposed to a kernel or 'bare-metal' driver.
 #define MIN_SAMPLE_RATE 2
 #define MAX_SAMPLE_RATE 100
 
 typedef struct {
-	short offset[3];
-	short range[3];
+	float bias[3];
+	float scale[3];
+
 } caldata_t;
+
+typedef struct 
+{
+	float bias[3];
+	float scale[3];
+}mag_caldata_t;
 
 typedef struct {
 	short rawGyro[3];
@@ -54,8 +61,10 @@ typedef struct {
 	short rawMag[3];
 	unsigned long magTimestamp;
 
-	short calibratedAccel[3];
-	short calibratedMag[3];
+	//short calibratedAccel[3];
+	//short calibratedMag[3];
+	float calibratedAccel[3];
+	float calibratedMag[3];
 
 	quaternion_t fusedQuat;
 	vector3d_t fusedEuler;
@@ -72,6 +81,7 @@ int mpu9150_read(mpudata_t *mpu);
 int mpu9150_read_dmp(mpudata_t *mpu);
 int mpu9150_read_mag(mpudata_t *mpu);
 void mpu9150_set_accel_cal(caldata_t *cal);
+//void mpu9150_set_mag_cal(caldata_t *cal);
 void mpu9150_set_mag_cal(caldata_t *cal);
 
 #endif /* MPU9150_H */

@@ -79,7 +79,7 @@ int scheduler_begin(void timer_update(union sigval v))
 
 int linux_get_ms(uint32_t *count)
 {
-	struct timespec t;
+	static struct timespec t;
 	if (!count)
 		return -1;
 	if (clock_gettime(CLOCK_MONOTONIC, &t) < 0) {
@@ -88,7 +88,7 @@ int linux_get_ms(uint32_t *count)
 		return -1;
 	}
 	//*count = (t.tv_sec * 1000) + (t.tv_usec / 1000) - (start_time.tv_sec * 1000) - (start_time.tv_usec / 1000);
-	*count = (t.tv_sec * 1e3) + (t.tv_nsec / 1e6) - (start_ntime.tv_sec * 1e3) - (start_ntime.tv_nsec / 1e6);
+	*count = (uint32_t)(t.tv_sec * 1e3 - start_ntime.tv_sec * 1e3) + (uint32_t)(t.tv_nsec / 1e6  - start_ntime.tv_nsec / 1e6);
 	//*count = (t.tv_sec * 1e3) + (t.tv_nsec * 1e6);
 	return 0;
 }
@@ -106,7 +106,25 @@ int linux_get_us(uint32_t *count)
 		return -1;
 	}
 
-	*count = (t.tv_sec * 1e6) + (t.tv_nsec / 1e3) - (start_ntime.tv_sec * 1e6) - (start_ntime.tv_nsec / 1e3);
+	*count = (uint32_t)(t.tv_sec * 1e6 - start_ntime.tv_sec * 1e6) + (uint32_t)(t.tv_nsec / 1e3  - start_ntime.tv_nsec / 1e3);
+	//*count = (t.tv_sec * 1e6) + (t.tv_nsec * 1e3);
+	return 0;
+}
+
+int linux_get_ns(uint32_t *count)
+{
+	struct timespec t;
+
+	if (!count)
+		return -1;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &t) < 0) {
+		//perror("gettimeofday");
+		fprintf(stderr, "\nclock_gettime err:%s\n", strerror(errno));
+		return -1;
+	}
+
+	*count = (uint32_t)(t.tv_sec * 1e9 - start_ntime.tv_sec * 1e9) +  (uint32_t)(t.tv_nsec - start_ntime.tv_nsec);
 	//*count = (t.tv_sec * 1e6) + (t.tv_nsec * 1e3);
 	return 0;
 }

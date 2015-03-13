@@ -72,7 +72,8 @@ void eulerToQuaternion(vector3d_t v, quaternion_t q)
 	q[QUAT_W] = cosX2 * cosY2 * cosZ2 + sinX2 * sinY2 * sinZ2;
 	q[QUAT_X] = sinX2 * cosY2 * cosZ2 - cosX2 * sinY2 * sinZ2;
 	q[QUAT_Y] = cosX2 * sinY2 * cosZ2 + sinX2 * cosY2 * sinZ2;
-	q[QUAT_Z] = cosX2 * cosY2 * sinZ2 - sinX2 * sinY2 * cosZ2;
+	//q[QUAT_Z] = cosX2 * cosY2 * sinZ2 - sinX2 * sinY2 * cosZ2;
+	q[QUAT_Z] = cosX2 * cosY2 * sinZ2 + sinX2 * sinY2 * cosZ2;
 
 	quaternionNormalize(q);
 }

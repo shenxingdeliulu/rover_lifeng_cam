@@ -3,14 +3,19 @@
 #
 
 CC = arm-linux-gcc
-CFLAGS = -Wall -fsingle-precision-constant
+#CC = gcc
+CFLAGS = -Wall -fsingle-precision-constant -std=gnu99
 
-# add -DI2C_DEBUG -DMPU9150_DEBUG for debugging 
-DEFS = -DEMPL_TARGET_LINUX -DMPU9150 -DAK8975_SECONDARY 
+# add -DI2C_DEBUG -DMPU9150_DEBUG  -DKALMAN_DEBUG  -DAHRS_DEBUG for debugging
+DEFS = -DEMPL_TARGET_LINUX -DMPU9150 -DAK8975_SECONDARY
 
 EMPLDIR = ../eMPL
 HALDIR = ../../ap_hal_linux
 MPUDIR = ../mpu9150
+KALDIR = ../../kalman
+MATRIXDIR = ../../mesch12b
+MATHDIR = ../../ap_math
+AHRSDIR = ../../ap_ahrs
 
 OBJS = inv_mpu.o \
        inv_mpu_dmp_motion_driver.o \
@@ -18,46 +23,83 @@ OBJS = inv_mpu.o \
        scheduler.o \
        mpu9150.o \
        quaternion.o \
-       vector3d.o
+       vector3d.o \
+       kalman.o \
+       matrix_kalman.o \
+       ap_ahrs.o \
+       ap_math.o \
+       mpu_calibration.o \
+       $(MATRIXDIR)/meschach.a \
 
-INCS = -I ../ -I $(EMPLDIR) -I $(HALDIR) -I $(MPUDIR) 
 
-all : imu imucal
+INCS = -I ../ -I $(EMPLDIR) -I $(HALDIR) -I $(MPUDIR) \
+		-I $(KALDIR) -I $(MATRIXDIR) -I $(MATHDIR) \
+		-I $(AHRSDIR)
 
+.PHONY: all imu imucal cal_test
 
-imu : $(OBJS) imu.o
-	$(CC) $(CFLAGS) $(OBJS) imu.o -lm -lrt -o imu
+all: imu imucal cal_test
 
-imucal : $(OBJS) imucal.o
-	$(CC) $(CFLAGS) $(OBJS) imucal.o -lm -lrt -o imucal
+imu: $(OBJS) imu.o
+	$(CC) $(CFLAGS) imu.o $(OBJS)  -lm -lrt -o $@
 
-	
-imu.o : imu.c
-	$(CC) $(CFLAGS) $(INCS)  $(DEFS)  -c imu.c
-	
-imucal.o : imucal.c
-	$(CC) $(CFLAGS) $(INCS) -I $(MPUDIR) $(DEFS) -c imucal.c
+imucal: $(OBJS) imucal.o
+	$(CC) $(CFLAGS) $(OBJS) imucal.o -lm -lrt   -o $@
 
-mpu9150.o : $(MPUDIR)/mpu9150.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $(MPUDIR)/mpu9150.c
+cal_test: $(OBJS) test_cal.o
+	$(CC) $(CFLAGS)  test_cal.o $(OBJS) -lm -lrt -o $@
 
-quaternion.o : $(MPUDIR)/quaternion.c
-	$(CC) $(CFLAGS) $(DEFS) -c $(MPUDIR)/quaternion.c
+imu.o: imu.c
+	$(CC) $(CFLAGS) $(INCS)  $(DEFS)  -c $<
 
-vector3d.o : $(MPUDIR)/vector3d.c
-	$(CC) $(CFLAGS) $(DEFS) -c $(MPUDIR)/vector3d.c
+imucal.o: imucal.c
+	$(CC) $(CFLAGS) $(INCS) -I $(MPUDIR) $(DEFS) -c $<
 
-i2c_driver.o : $(HALDIR)/i2c_driver.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $(HALDIR)/i2c_driver.c
+test_cal.o: test_cal.c
+	$(CC) $(CFLAGS) $(INCS)  $(DEFS)  -c $<
 
-scheduler.o : $(HALDIR)/scheduler.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $(HALDIR)/scheduler.c
+mpu9150.o: $(MPUDIR)/mpu9150.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
-inv_mpu_dmp_motion_driver.o : $(EMPLDIR)/inv_mpu_dmp_motion_driver.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $(EMPLDIR)/inv_mpu_dmp_motion_driver.c
+quaternion.o: $(MPUDIR)/quaternion.c
+	$(CC) $(CFLAGS) $(DEFS) -c $<
 
-inv_mpu.o : $(EMPLDIR)/inv_mpu.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $ -c $(EMPLDIR)/inv_mpu.c
+vector3d.o: $(MPUDIR)/vector3d.c
+	$(CC) $(CFLAGS) $(DEFS) -c $<
+
+i2c_driver.o: $(HALDIR)/i2c_driver.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+scheduler.o: $(HALDIR)/scheduler.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+inv_mpu_dmp_motion_driver.o: $(EMPLDIR)/inv_mpu_dmp_motion_driver.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+inv_mpu.o: $(EMPLDIR)/inv_mpu.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+kalman.o: $(KALDIR)/kalman.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+matrix_kalman.o: $(KALDIR)/matrix_kalman.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+$(MATRIXDIR)/meschach.a:
+	cd $(MATRIXDIR) && make
+
+ap_ahrs.o: $(AHRSDIR)/ap_ahrs.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+ap_math.o: $(MATHDIR)/ap_math.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+mpu_calibration.o: $(MPUDIR)/mpu_calibration.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
+
+kbhit.o: $(HALDIR)/kbhit.c
+	$(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
 clean:
-	rm -f *.o imu imucal
+	rm -f *.o imu imucal cal_test
+	cd $(MATRIXDIR) && make clean
