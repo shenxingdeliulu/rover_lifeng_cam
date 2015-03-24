@@ -32,6 +32,12 @@ int imu_calibration(MAT *mea, VEC *cal_bias, VEC *cal_factor)
 	//int i = 0 , j = 0;
 	MAT * matrix_v;
 	matrix_v = m_get(PARA_NUM, measure_num);
+	// 	x0 * x0, 	x1 * x1, 	x2 * x2, 	x3 * x3, 	x4 * x4,	x5 * x5,
+	// 	y0 * y0, 	y1 * y1, 	y2 * y2, 	y3 * y3, 	y4 * y4,	y5 * y5,
+	// 	z0 * z0, 	z1 * z1, 	z2 * z2, 	z3 * z3, 	z4 * z4, 	z5 * z5,
+	// 	x0, 	 	x1, 	   	x2, 		x3, 		x4, 		x5,
+	// 	y0, 		y1, 		y2, 		y3, 		y4, 		y5,
+	// 	z0, 		z1, 		z2, 		z3, 		z4, 		z5
 	for (int i = 0; i < measure_num; i++)
 	{
 		matrix_v->me[0][i] =mea->me[i][0] * mea->me[i][0];
@@ -43,41 +49,6 @@ int imu_calibration(MAT *mea, VEC *cal_bias, VEC *cal_factor)
 
 	}
 
-
-	// double x0, x1, x2, x3, x4, x5;
-	// double y0, y1, y2, y3, y4, y5;
-	// double z0, z1, z2, z3, z4, z5;
-
-	// x0 = mea->me[0][0];
-	// x1 = mea->me[1][0];
-	// x2 = mea->me[2][0];
-	// x3 = mea->me[3][0];
-	// x4 = mea->me[4][0];
-	// x5 = mea->me[5][0];
-
-	// y0 = mea->me[0][1];
-	// y1 = mea->me[1][1];
-	// y2 = mea->me[2][1];
-	// y3 = mea->me[3][1];
-	// y4 = mea->me[4][1];
-	// y5 = mea->me[5][1];
-
-	// z0 = mea->me[0][2];
-	// z1 = mea->me[1][2];
-	// z2 = mea->me[2][2];
-	// z3 = mea->me[3][2];
-	// z4 = mea->me[4][2];
-	// z5 = mea->me[5][2];
-
-
-
-	// set_matrix(matrix_v,
-	// 	x0 * x0, x1 * x1, x2 * x2, x3 * x3, x4 * x4, x5 * x5,
-	// 	y0 * y0, y1 * y1, y2 * y2, y3 * y3, y4 * y4, y5 * y5,
-	// 	z0 * z0, z1 * z1, z2 * z2, z3 * z3, z4 * z4, z5 * z5,
-	// 	x0, x1, x2, x3, x4, x5,
-	// 	y0, y1, y2, y3, y4, y5,
-	// 	z0, z1, z2, z3, z4, z5 );
 	//m_output(matrix_v);
 	MAT * matrix_a;
 	matrix_a = m_get(PARA_NUM, PARA_NUM);

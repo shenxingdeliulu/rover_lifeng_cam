@@ -1,3 +1,5 @@
+//#include <stdbool.h>
+
 #include "scheduler.h"
 #include "my_timer.h"
 
@@ -9,19 +11,35 @@ bool send_params_now = true;
 bool send_gps_now = true;
 bool send_imu_now = true;
 bool read_imu_now = true;
-bool read_infr_now = true;
+bool read_laser_range_now = true;
 bool read_gps_now = true;
 bool update_current_mode = true;
 bool set_servos_now = true;
 bool navigate = true;
 
-enum 
+enum
 {
 	TIMER_SYSTEM_STATE,
-	NTIMERS 
+	TIMER_RECEIVE,
+	TIMER_SEND_PARAMS,
+	TIMER_READ_IMU,
+	TIMER_READ_GPS,
+	TIMER_READ_LR,
+
+	NTIMERS
 } timer_state;
 
-struct 
+enum
+{
+	SYSTEM_STATE_COUNT = 1000,
+	RECEIVE_COUNT = 50,
+	PARAMS_COUNT = 100,
+	IMU_COUNT = 20,
+	GPS_COUNT = 100,
+	LR_COUNT = 1000
+} timer_count;
+
+struct
 {
 	int timer[NTIMERS];
 	char timer_name[NTIMERS][TIMER_DATA_LENGTH];
@@ -31,29 +49,59 @@ struct
 
 void timer_data_defaluts()
 {
+	timer_data.timer[TIMER_SYSTEM_STATE] = SYSTEM_STATE_COUNT;
+
+	timer_data.timer[TIMER_RECEIVE] = RECEIVE_COUNT;
+
+	timer_data.timer[TIMER_SEND_PARAMS] = PARAMS_COUNT;
+
+	timer_data.timer[TIMER_READ_IMU] = IMU_COUNT;
+
+	timer_data.timer[TIMER_READ_GPS] = GPS_COUNT;
+
+	timer_data.timer[TIMER_READ_LR] = LR_COUNT;
 
 }
-void timer_update(union sigval v)
+
+void timer_update()
 {
 	unsigned i = 0;
 	for ( i = 0; i < NTIMERS; i++)
 	{
-		if (timer[i] > 0)
-			timer[i]--;
+		if (timer_data.timer[i] > 0)
+			timer_data.timer[i]--;
 	}
-	if (timer[TIMER_SYSTEM_STATE] == 0)
+	if (timer_data.timer[TIMER_SYSTEM_STATE] == 0)
 	{
 		send_system_state_now = true;
-		timer[TIMER_SYSTEM_STATE] = SYSTEM_STATE_COUNT;
+		timer_data.timer[TIMER_SYSTEM_STATE] = SYSTEM_STATE_COUNT;
 	}
-	if (timer[TIMER_RECEIVE] == 0)
+	if (timer_data.timer[TIMER_RECEIVE] == 0)
 	{
 		receive_now = true;
-		timer[TIMER_RECEIVE] = RECEIVE_COUNT;
+		timer_data.timer[TIMER_RECEIVE] = RECEIVE_COUNT;
 	}
-	if (timer[TIMER_PARAMS] == 0)
+	if (timer_data.timer[TIMER_SEND_PARAMS] == 0)
 	{
 		send_params_now = true;
-		timer[TIMER_PARAMS] =PARAMS_COUNT;
+		timer_data.timer[TIMER_SEND_PARAMS] =PARAMS_COUNT;
+	}
+
+	if (timer_data.timer[TIMER_READ_IMU] == 0)
+	{
+		read_imu_now = true;
+		timer_data.timer[TIMER_READ_IMU] = IMU_COUNT;
+	}
+
+	if (timer_data.timer[TIMER_READ_GPS] == 0)
+	{
+		read_gps_now = true;
+		timer_data.timer[TIMER_READ_GPS] = GPS_COUNT;
+	}
+
+	if (timer_data.timer[TIMER_READ_LR] == 0)
+	{
+		read_laser_range_now = true;
+		timer_data.timer[TIMER_READ_LR] = LR_COUNT;
 	}
 }

@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <fcntl.h> //F_SETFL
+#include <fcntl.h> //F_SETFL open
+#include <unistd.h> //close
 #include <sys/socket.h> //sendto socket
-//#include <arpa/inet.h> //htons
+#include <arpa/inet.h> //htons inet_addr inet_ntoa
 #include <netinet/in.h> //sockaddr_in
+//s#include <bits/fcntl.h>
 #include "udp_driver.h"
 
-#define SERVER_IP "192.168.1.102"
-#define UDP_PORT 6000
+#define SERVER_IP "192.168.1.100"
+#define UDP_PORT 14550
 
 bool flag_udp_init = false;
-struct sockaddr_in gc_addr;
-
+struct sockaddr_in gc_addr, rc_addr;
+socklen_t fromlen;
 int sock_udp = -1;
 
 int udp_init()
@@ -34,6 +36,7 @@ int udp_init()
 		close(sock_udp);
 		return -1;
 	}
+	//if (-1 == fcntl(sock_udp, F_SETFL, O_NONBLOCK | FASYNC))
 	if (-1 == fcntl(sock_udp, F_SETFL, O_NONBLOCK | FASYNC))
 	{
 		fprintf(stderr, "setting nonblocking err: %s \n", strerror(errno));
@@ -60,8 +63,8 @@ void udp_close()
 
 int udp_send(uint8_t *ch, uint16_t length)
 {
-	uint16_t bytes_send = 0;
-	bytes_send = sendto(sock_udp, ch, length, 0, (struct sockaddr *)&gc_addr, 
+	int16_t bytes_send = 0;
+	bytes_send = sendto(sock_udp, ch, length, 0, (struct sockaddr *)&gc_addr,
 								sizeof(struct sockaddr_in));
 	if (bytes_send == -1)
 	{
@@ -69,4 +72,27 @@ int udp_send(uint8_t *ch, uint16_t length)
 		return -1;
 	}
 	return bytes_send;
+}
+
+int udp_receive(uint8_t *ch, uint16_t length)
+{
+	int16_t bytes_receive;
+	//recvfrom get the source address
+	bytes_receive = recvfrom(sock_udp, ch, length, 0, (struct sockaddr *)&rc_addr, &fromlen);
+	if (bytes_receive < 0)
+	{
+		fprintf(stderr, "recvfrom error:%s\n", strerror(errno));
+	}
+	else
+	{
+		fprintf(stdout, "remote ip is: %s,port is %d\n",
+						inet_ntoa(rc_addr.sin_addr), ntohs(rc_addr.sin_port));
+		fprintf(stdout, "bytes received:%d datagram:\n", bytes_receive);
+		for (int j = 0; j < bytes_receive; j++)
+		{
+			fprintf(stdout, "%02x ", ch[j]);
+		}
+		fprintf(stdout, "\n");
+	}
+	return bytes_receive;
 }
