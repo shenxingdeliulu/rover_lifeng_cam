@@ -13,6 +13,9 @@
 #define VEC3_Y	1
 #define VEC3_Z	2
 
+#define IS_SET(field, mask) (((field)&(mask)) == (mask))
+#define SET_MASK(field, mask) (field) |= (mask)
+#define UNSET_MASK(field, mask) (field) &= ~(mask)
 /**
  * a varient of asin() that checks the input ranges and ensures a
  * valid angle as output. If nan is given as input then zero is
