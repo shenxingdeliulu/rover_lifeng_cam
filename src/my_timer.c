@@ -1,21 +1,24 @@
 //#include <stdbool.h>
+#include <pthread.h>
 
 #include "scheduler.h"
 #include "my_timer.h"
+#include "settings.h"
 
 #define TIMER_DATA_LENGTH 15
 
-bool send_system_state_now = true;
-bool receive_now = true;
-bool send_params_now = true;
-bool send_gps_now = true;
-bool send_imu_now = true;
-bool read_imu_now = true;
-bool read_laser_range_now = true;
-bool read_gps_now = true;
-bool update_current_mode = true;
-bool set_servos_now = true;
-bool navigate = true;
+bool send_system_state_now = false;
+bool receive_now = false;
+bool send_params_now = false;
+bool send_gps_now = false;
+bool send_imu_now = false;
+bool read_imu_now = false;
+bool read_laser_range_now = false;
+bool read_gps_now = false;
+bool update_current_mode = false;
+bool set_servos_now = false;
+bool navigate = false;
+bool begin_control = false;
 
 enum
 {
@@ -89,7 +92,11 @@ void timer_update()
 
 	if (timer_data.timer[TIMER_READ_IMU] == 0)
 	{
+		//pthread_mutex_lock(&lock_read_imu);
 		read_imu_now = true;
+		//pthread_mutex_unlock(&lock_read_imu);
+		//pthread_cond_signal(&ready_read_imu);
+		
 		timer_data.timer[TIMER_READ_IMU] = IMU_COUNT;
 	}
 

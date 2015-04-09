@@ -15,6 +15,7 @@ extern bool read_gps_now;
 extern bool update_current_mode;
 extern bool set_servos_now;
 extern bool navigate;
+extern bool begin_control;
 
 void timer_data_defaluts();
 void timer_update();

@@ -11,18 +11,31 @@
 #include "settings.h"
 #include "scheduler.h"
 #include "udp_driver.h"
-
+#include "ap_math.h"
+#include "imu.h"
+#include "ap_gps.h"
+#include "ap_control.h"
+#include "my_timer.h"
 
 mavlink_system_t mavlink_system;
 
 static uint32_t m_parameter_i = 0;
+bool flag_communication_init = false;
 
-void communication_init(void)
+int communication_init(void)
 {
-	udp_init();
+
 
 	mavlink_system.sysid = global_data.param[PARAM_SYSTEM_ID];
 	mavlink_system.compid = global_data.param[PARAM_COMPONENT_ID];
+	if (udp_init() != 0)
+	 	return -1;
+	else
+	{
+		//flag_communication_init = true;
+		return 0;
+	}
+
 }
 
 void communication_system_state_send(void)
@@ -39,6 +52,32 @@ void communication_parameter_send(void)
 						global_data.param[m_parameter_i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 		m_parameter_i++;
 	}
+}
+
+void communication_imu_send()
+{
+	mavlink_msg_scaled_imu_send(MAVLINK_COMM_0,
+								mpu.dmpTimestamp,
+								mpu.calibratedAccel[VEC3_X] / 16384.0 * 1000,
+							 	mpu.calibratedAccel[VEC3_Y] / 16384.0 * 1000,
+							 	mpu.calibratedAccel[VEC3_Z] / 16384.0 * 1000,
+								mpu.rawGyro[VEC3_X] / 16.38 / 180 * 3.14 * 1000,
+								mpu.rawGyro[VEC3_Y] / 16.38 / 180 * 3.14 * 1000 ,
+								mpu.rawGyro[VEC3_Z] / 16.38 / 180 * 3.14 * 1000 , 65535, 65535, 65535);
+
+	//fprintf(stdout, "tmp_yaw is %f \n", tmp_yaw);
+	mavlink_msg_attitude_send(MAVLINK_COMM_0,
+								mpu.dmpTimestamp,
+								mpu.fusedEuler[VEC3_X],
+								mpu.fusedEuler[VEC3_Y],
+								mpu.fusedEuler[VEC3_Z], 65535, 65535, 65535);
+}
+
+void communication_gps_send()
+{
+
+	mavlink_msg_gps_raw_int_send(MAVLINK_COMM_0, gps_timestamp* 1000, info.fix, info.lat*100000, info.lon*100000, info.elv * 1000,
+									info.HDOP * 100, info.VDOP * 100, info.speed / 3.6 * 100, info.direction * 100, info.satinfo.inview);
 }
 
 void handle_mavlink_message(mavlink_channel_t chan, mavlink_message_t *msg)
@@ -137,7 +176,9 @@ void handle_mavlink_message(mavlink_channel_t chan, mavlink_message_t *msg)
 				fprintf(stdout, "RC channel 2: %d\n", rc_channels_override.chan2_raw);
 				fprintf(stdout, "RC channel 3: %d\n", rc_channels_override.chan3_raw);
 				fprintf(stdout, "RC channel 4: %d\n", rc_channels_override.chan4_raw);
-
+				channel_throttle = rc_channels_override.chan3_raw;
+				channel_steer = rc_channels_override.chan4_raw;
+				begin_control = true;
 			}
 		}
 		break;
@@ -168,8 +209,11 @@ void communication_receive(void)
 		{
 			if (mavlink_parse_char(MAVLINK_COMM_0, buf_receive[i], &msg, &status))
 			{
+
+#ifdef COMMU_DEBUG
 				fprintf(stdout, "\n");
 				fprintf(stdout, "received packed,sys: %d, comp: %d, LEN : %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+#endif
 				handle_mavlink_message(MAVLINK_COMM_0, &msg);
 			}
 		}
@@ -183,9 +227,13 @@ void mavlink_send_uart_bytes(mavlink_channel_t chan, uint8_t *ch, uint16_t lengt
 	if (chan == MAVLINK_COMM_0)
 	{
 		send_size = udp_send(ch, length);
+
+#ifdef COMMU_DEBUG
 		if (send_size < 0)
 		{
 			fprintf(stderr, "sending packet err: %s\n", strerror(errno));
 		}
+
+#endif
 	}
 }

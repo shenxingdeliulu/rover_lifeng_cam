@@ -45,7 +45,7 @@ caldata_t mag_cal_data;
 
 kalman_filter f_yaw;
 
-#define DELT_T 			0.1
+#define DELT_T 			0.02
 
 
 void mpu9150_set_debug(int on)
@@ -177,17 +177,17 @@ int mpu9150_init(int i2c_bus, int sample_rate, int mix_factor)
 	//set_matrix(f_yaw.control_input_model, 0.01, 0.0);
 	set_matrix(f_yaw.observation_model, 1.0, 0.0);
 
+//	set_matrix(f_yaw.process_noise_covariance,
+//				0.001, 	0.0,
+//				0.0, 		0.003);
+	//set_matrix(f_yaw.process_noise_covariance,
+	//			0.00001, 	0.0,
+	//			0.0, 		0.00003);
 	set_matrix(f_yaw.process_noise_covariance,
-				0.001, 	0.0,
-				0.0, 		0.003);
-	set_matrix(f_yaw.process_noise_covariance,
-				0.00001, 	0.0,
-				0.0, 		0.00003);
-	// set_matrix(f_yaw.process_noise_covariance,
-	// 			1.0, 	0.0,
-	// 			0.0, 		1.0);
-	set_matrix(f_yaw.observation_noise_covariance, 0.2);
-	//set_matrix(f_yaw.observation_noise_covariance, 5.0);
+	 			1.0, 	0.0,
+	 			0.0, 		1.0);
+	//set_matrix(f_yaw.observation_noise_covariance, 0.2);
+	set_matrix(f_yaw.observation_noise_covariance, 5.0);
 	float deviation = 1000.0;
 	set_matrix(f_yaw.state_estimate, 0.0, 0.0);
 	m_ident(f_yaw.estimate_covariance);
@@ -548,23 +548,23 @@ int data_fusion_kalman(mpudata_t *mpu)
 	hn_y = mag[VEC3_Y] * cos(dmp_euler[VEC3_X]) - mag[VEC3_Z] * sin(dmp_euler[VEC3_X]);
 	hn_x = mag[VEC3_X] * cos(dmp_euler[VEC3_Y]) + mag[VEC3_Y] * sin(dmp_euler[VEC3_X]) * sin(dmp_euler[VEC3_Y]) + mag[VEC3_Z] * cos(dmp_euler[VEC3_X]) * sin(dmp_euler[VEC3_Y]);
 	mag_angle = (double) atan2(-hn_y, hn_x);
-	if(mag_angle < 0)
-	{
-		mag_angle += 2 * PI;
-	}
+	//if(mag_angle < 0)
+	//{
+	//	mag_angle += 2 * PI;
+	//}
 	static char i = 0;
 	i++;
 	static float mag_yaw = 0;
-	if (i <= 5)
-	{
-		mag_yaw += mag_angle;
+	//if (i <= 5)
+	//{
+	//	mag_yaw += mag_angle;
 
-	}
-	else
-	{
+	//}
+	//else
+	//{
 	 	i = 0;
-	 	mag_angle = mag_yaw / 5;
-		mag_yaw = 0;
+	 	//mag_angle = mag_yaw / 5;
+		//mag_yaw = 0;
 		set_matrix(f_yaw.observation,  mag_angle);
 		//fprintf(stdout, "observation is : %f\n", (double) mag_angle * RAD_TO_DEG);
 
@@ -591,7 +591,7 @@ int data_fusion_kalman(mpudata_t *mpu)
 
 	mpu->fusedEuler[VEC3_Z] = f_yaw.state_estimate->me[0][0];
 
-	}
+	//}
 
 	return 0;
 }

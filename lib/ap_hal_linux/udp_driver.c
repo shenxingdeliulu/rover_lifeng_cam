@@ -9,7 +9,11 @@
 //s#include <bits/fcntl.h>
 #include "udp_driver.h"
 
-#define SERVER_IP "192.168.1.100"
+//#define SERVER_IP "192.168.1.100"
+//#define SERVER_IP "192.168.1.109"
+#define SERVER_IP "192.168.1.113"
+//#define SERVER_IP "192.168.1.111"
+
 #define UDP_PORT 14550
 
 bool flag_udp_init = false;
@@ -66,11 +70,17 @@ int udp_send(uint8_t *ch, uint16_t length)
 	int16_t bytes_send = 0;
 	bytes_send = sendto(sock_udp, ch, length, 0, (struct sockaddr *)&gc_addr,
 								sizeof(struct sockaddr_in));
+
 	if (bytes_send == -1)
 	{
+
+#ifdef UDP_DEBUG
 		fprintf(stderr, "udp send err: %s \n", strerror(errno));
+#endif
 		return -1;
 	}
+
+
 	return bytes_send;
 }
 
@@ -79,6 +89,8 @@ int udp_receive(uint8_t *ch, uint16_t length)
 	int16_t bytes_receive;
 	//recvfrom get the source address
 	bytes_receive = recvfrom(sock_udp, ch, length, 0, (struct sockaddr *)&rc_addr, &fromlen);
+
+#ifdef UDP_DEBUG
 	if (bytes_receive < 0)
 	{
 		fprintf(stderr, "recvfrom error:%s\n", strerror(errno));
@@ -94,5 +106,6 @@ int udp_receive(uint8_t *ch, uint16_t length)
 		}
 		fprintf(stdout, "\n");
 	}
+#endif
 	return bytes_receive;
 }
