@@ -21,8 +21,9 @@ struct sockaddr_in gc_addr, rc_addr;
 socklen_t fromlen;
 int sock_udp = -1;
 
-int udp_init()
+int udp_init(char *ip)
 {
+	
 	struct sockaddr_in loc_addr;
 	sock_udp = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock_udp == -1)
@@ -49,7 +50,15 @@ int udp_init()
 	}
 	memset(&gc_addr, 0, sizeof(gc_addr));
 	gc_addr.sin_family = AF_INET;
-	gc_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	if (ip != NULL)
+	{
+		gc_addr.sin_addr.s_addr = inet_addr(ip);
+	}
+	else 
+	{
+		gc_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	}
+	
 	gc_addr.sin_port = htons(UDP_PORT);
 	flag_udp_init = true;
 	return 0;

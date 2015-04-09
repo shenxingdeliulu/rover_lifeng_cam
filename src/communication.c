@@ -22,13 +22,13 @@ mavlink_system_t mavlink_system;
 static uint32_t m_parameter_i = 0;
 bool flag_communication_init = false;
 
-int communication_init(void)
+int communication_init(char *ip)
 {
 
 
 	mavlink_system.sysid = global_data.param[PARAM_SYSTEM_ID];
 	mavlink_system.compid = global_data.param[PARAM_COMPONENT_ID];
-	if (udp_init() != 0)
+	if (udp_init(ip) != 0)
 	 	return -1;
 	else
 	{

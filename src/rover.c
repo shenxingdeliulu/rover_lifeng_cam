@@ -4,6 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <getopt.h>
 
 #include "scheduler.h"
 #include "my_timer.h"
@@ -21,6 +22,14 @@ void sigint_main_handler(int sig);
 
 int main_done = 0;
 
+void usage(char *argv_0)
+{
+	fprintf(stdout, "usage: %s [iptions]\n", argv_0);
+	fprintf(stdout, "-p <ip address> the ip address of server\n");
+	fprintf(stdout, "-h show the help\n");
+	fprintf(stdout, "example: %s -p \"192.168.1.113\"\n", argv_0);
+	exit(1);
+}
 int  rover_init()
 {
 	scheduler_init();
@@ -30,9 +39,34 @@ int  rover_init()
 	return 0;
 
 }
-int main()
+int main(int argc, char **argv)
 {
+	int opt;
+	int len;
+	char * ip_addr = NULL;
+	while ( (opt = getopt(argc, argv, "p:h")) != -1)
+	{
+		switch (opt)
+		{
+			case 'p':
+			len = 1 + strlen(optarg);
+			ip_addr = (char *) malloc(len);
+			if (ip_addr == NULL)
+			{
+				fprintf(stderr, "malloc err: %s\n", strerror(errno));
+			}
+			strcpy(ip_addr, optarg);
+			fprintf(stdout, "remote ip addr is %s\n", ip_addr);
+			break;
+			case 'h':
+				usage(argv[0]);
+				break;
+			default:
+				usage(argv[0]);
+				break;
 
+		}
+	}
 	rover_init();
 
 	int res;
@@ -42,7 +76,7 @@ int main()
 	pthread_t control_thread;
 
 	void *thread_result;
-	if (communication_init() == 0)
+	if (communication_init(ip_addr) == 0)
 	{
 		flag_communication_init = true;
 		res = pthread_create(&transfer_thread, NULL, task_transfer, 0);

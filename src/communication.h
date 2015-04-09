@@ -4,7 +4,7 @@
 bool flag_communication_init;
 
 
-int communication_init(void);
+int communication_init(char *ip);
 void communication_system_state_send(void);
 void communication_parameter_send(void);
 void communication_receive(void);
