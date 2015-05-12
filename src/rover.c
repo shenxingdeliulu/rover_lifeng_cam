@@ -14,7 +14,7 @@
 #include "imu.h"
 #include "ap_gps.h"
 #include "ap_control.h"
-
+#include "rtpsend.h"
 int register_sig_handler();
 
 void sigint_main_handler(int sig);
@@ -30,12 +30,14 @@ void usage(char *argv_0)
 	fprintf(stdout, "example: %s -p \"192.168.1.113\"\n", argv_0);
 	exit(1);
 }
+
 int  rover_init()
 {
 	scheduler_init();
 	scheduler_begin(timer_update);
 	global_data_reset_param_defaults();
 	register_sig_handler();
+
 	return 0;
 
 }
@@ -68,13 +70,13 @@ int main(int argc, char **argv)
 		}
 	}
 	rover_init();
-
+	
 	int res;
 	pthread_t transfer_thread;
 	pthread_t read_imu_thread;
 	pthread_t read_gps_thread;
 	pthread_t control_thread;
-
+	pthread_t camera_thread;
 	void *thread_result;
 	if (communication_init(ip_addr) == 0)
 	{
@@ -115,6 +117,17 @@ int main(int argc, char **argv)
 			fprintf(stderr, "task:control failed:%s\n", strerror(errno));
 		}
 	}
+
+ 	if(camera_init()==1)
+ 	{
+
+ 		res = pthread_create(&camera_thread, NULL, task_camera, 0);
+		if (res != 0)
+		{
+			fprintf(stderr, "task:camera failed:%s\n", strerror(errno));
+		}
+ 	}
+
 
 	while(main_done == 0)
 	{

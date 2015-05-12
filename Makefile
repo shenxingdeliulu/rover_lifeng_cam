@@ -23,7 +23,7 @@ AHRSDIR = ./lib/ap_ahrs
 NMEADIR = ./lib/nmealib
 GPSDIR = ./lib/ap_gps
 CONTROLDIR = ./lib/ap_control
-
+CAMDIR = ./lib/camera
 OBJS = $(SRCDIR)/communication.o \
 		$(SRCDIR)/settings.o \
 		$(SRCDIR)/my_timer.o \
@@ -47,16 +47,21 @@ OBJS = $(SRCDIR)/communication.o \
        	$(GPSDIR)/ap_gps.o \
        	$(CONTROLDIR)/ap_control.o \
        	$(MATRIXDIR)/meschach.a \
-       	$(NMEADIR)/lib/libnmea.a
-       	#ap_ahrs.o \
+       	$(NMEADIR)/lib/libnmea.a \
+       	$(CAMDIR)/capture.o \
+       	$(CAMDIR)/Encoder.o \
+       	$(CAMDIR)/rtpsend.o \
+       	$(CAMDIR)/SsbSipMfcDecAPI.o \
+       	$(CAMDIR)/SsbSipMfcEncAPI.o 
 
-LIBS = -lpthread -lrt -lm
+LIBS = -lpthread -lrt -lm -lortp
 
 INCS = -I $(MAVLINKDIR) -I $(MAVLINKDIR2) -I $(SRCDIR)  -I $(HALDIR) \
 		-I $(IMUDIR)/eMPL -I $(IMUDIR)/mpu9150 -I $(IMUDIR) -I $(KALDIR) \
 		-I $(MATRIXDIR) -I $(MATHDIR) -I $(AHRSDIR) -I $(NMEADIR) \
-		-I $(NMEADIR)/include    -I $(GPSDIR) -I $(CONTROLDIR)
-
+		-I $(NMEADIR)/include    -I $(GPSDIR) -I $(CONTROLDIR) \
+		-I $(CAMDIR) \
+		-I/opt/ortp/include -L/opt/ortp/lib
 test: $(OBJS)
 	$(CC) $(INCS) $^ $(LIBS) -o $@
 

@@ -10,7 +10,7 @@
 #include "mpu9150.h"
 #include "ap_gps.h"
 #include "ap_control.h"
-
+#include "rtpsend.h"
 void *task_transfer()
 {
 
@@ -182,5 +182,48 @@ void *task_control()
 		}
 
 	}
+
+}
+
+
+void *task_camera()
+{
+while(1)
+{
+//这一段涉及到异步IO
+
+  // fd_set fds;
+  // struct timeval tv;
+ //  int r;
+
+ //  FD_ZERO (&fds);//将指定的文件描述符集清空
+ //  FD_SET (fd, &fds);//在文件描述符集合中增加一个新的文件描述符
+
+   /* Timeout. */
+ //  tv.tv_sec = 2;
+ //  tv.tv_usec = 0;
+
+ //  r = select (fd + 1, &fds, NULL, NULL, &tv);//判断是否可读（即摄像头是否准备好），tv是定时
+
+ //  if (-1 == r) {
+ //   if (EINTR == errno)
+   //  continue;
+ //   printf ("select err\n");
+    //                    }
+ //  if (0 == r) {
+  //  fprintf (stderr, "select timeout\n");
+  //  exit (EXIT_FAILURE);
+   //                     }
+	printf("read to send");
+   if(read_frame ())
+  {
+    H264_Encode(nv12buffer,fp_h264);
+    rtpSend(pRtpSession,oinfo.StrmVirAddr,oinfo.dataSize);
+
+  }
+    
+
+
+} 
 
 }
